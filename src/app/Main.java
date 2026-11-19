@@ -13,15 +13,22 @@ import io.LeitorMunicipios;
 import io.PajekIO;
 import model.Grafo;
 
+/**
+ * MENU no terminal. Não tem algoritmo aqui dentro: cada opção chama uma
+ * função, que chama a classe responsável. O Main só junta as peças.
+ */
 public class Main {
 
     static final String CSV = "dados/municipios_idhm_2010.csv";
-    static final int K = 8;
+    static final int K = 8;   // nº de vizinhos de cada município
+
+    // Grafo ATUAL, compartilhado por todas as opções.
+    // As opções 1 (CSV), 3 (Pajek) e 9 (aleatório) trocam este grafo.
     static Grafo grafo = null;
     static Scanner in = new Scanner(System.in);
 
     public static void main(String[] args) {
-        while (true) {
+        while (true) {   // repete o menu até escolher 0
             System.out.println("\n===== Sistema de Análise de IDHM - Grafos =====");
             System.out.println("Grafo atual: " + (grafo == null ? "nenhum"
                 : grafo.numVertices() + " vértices, " + grafo.numArestas() + " arestas"));
@@ -39,6 +46,8 @@ public class Main {
             System.out.print("Opção: ");
 
             String op = in.nextLine().trim();
+            // try/catch: um erro (arquivo inexistente, parâmetro inválido...)
+            // mostra a mensagem e volta ao menu, sem derrubar o programa.
             try {
                 switch (op) {
                     case "1" -> importar();
@@ -60,8 +69,9 @@ public class Main {
         }
     }
 
-    // ---------- OPÇÕES ----------
+    // ===================== OPÇÕES =====================
 
+    // 1: lê o CSV (vértices) e aplica o k-NN (arestas)
     static void importar() throws Exception {
         long t0 = System.currentTimeMillis();
         grafo = LeitorMunicipios.ler(CSV);
@@ -71,6 +81,7 @@ public class Main {
             + grafo.numArestas() + " arestas (" + (t1 - t0) + " ms)");
     }
 
+    // 2: grava o grafo atual em .net
     static void salvarPajek() throws Exception {
         if (!temGrafo()) return;
         System.out.print("Arquivo (Enter = resultados/grafo.net): ");
@@ -80,6 +91,7 @@ public class Main {
         System.out.println("Salvo em " + c);
     }
 
+    // 3: carrega um .net e ele passa a ser o grafo atual
     static void carregarPajek() throws Exception {
         System.out.print("Arquivo (Enter = resultados/grafo.net): ");
         String c = in.nextLine().trim();
@@ -89,6 +101,7 @@ public class Main {
             + grafo.numArestas() + " arestas, " + (grafo.isDirecionado() ? "direcionado" : "não direcionado"));
     }
 
+    // 4: tipo, nº de vértices e arestas, grau mínimo/máximo/médio
     static void estatisticas() {
         if (!temGrafo()) return;
         int min = Integer.MAX_VALUE, max = 0;
@@ -106,6 +119,7 @@ public class Main {
             min, max, (double) soma / grafo.numVertices());
     }
 
+    // 5: conexo? Se não, lista os componentes (até 5 rótulos de cada)
     static void conectividade() {
         if (!temGrafo()) return;
         List<List<Integer>> comps = Conectividade.componentes(grafo);
@@ -125,6 +139,7 @@ public class Main {
         }
     }
 
+    // 6: cíclico? euleriano (circuito)? se não, tem trilha aberta?
     static void ciclosEuler() {
         if (!temGrafo()) return;
         System.out.println("Cíclico? " + (CiclosEuler.isCiclico(grafo) ? "SIM" : "NÃO"));
@@ -136,6 +151,7 @@ public class Main {
         }
     }
 
+    // 7: calcula a proximidade de TODOS e mostra os 10 maiores
     static void proximidade() {
         if (!temGrafo()) return;
         System.out.println("Calculando (pode levar alguns minutos)...");
@@ -145,6 +161,7 @@ public class Main {
         imprimirTop(v, 10);
     }
 
+    // 8: calcula a intermediação de TODOS e mostra os 10 maiores
     static void intermediacao() {
         if (!temGrafo()) return;
         System.out.println("Calculando (pode levar alguns minutos)...");
@@ -154,6 +171,7 @@ public class Main {
         imprimirTop(v, 10);
     }
 
+    // 9: lê n, m e conexo do usuário e gera (semente = relógio)
     static void gerarAleatorio() {
         System.out.print("Nº de vértices: ");
         int n = Integer.parseInt(in.nextLine().trim());
@@ -166,7 +184,12 @@ public class Main {
             + " arestas | conexo? " + (Conectividade.isConexo(grafo) ? "SIM" : "NÃO"));
     }
 
-    // Mede o tempo das centralidades com os primeiros N municípios do CSV
+    /**
+     * 10: mede o tempo das centralidades com os primeiros N municípios do CSV.
+     * Mostra a complexidade na prática: o tempo cresce bem mais rápido que N
+     * (perto de V² log V). Reaproveita os objetos Vertice porque os primeiros
+     * N do CSV têm ids 0..N-1.
+     */
     static void desempenho() throws Exception {
         Grafo completo = LeitorMunicipios.ler(CSV);
         int[] tamanhos = {100, 500, 1000, 3000, completo.numVertices()};
@@ -185,8 +208,9 @@ public class Main {
         }
     }
 
-    // ---------- AUXILIARES ----------
+    // ===================== AUXILIARES =====================
 
+    // Avisa se a opção precisa de um grafo e nenhum foi carregado
     static boolean temGrafo() {
         if (grafo == null) {
             System.out.println("Nenhum grafo carregado. Use a opção 1, 3 ou 9.");
@@ -195,6 +219,7 @@ public class Main {
         return true;
     }
 
+    // Ordena os ÍNDICES dos vértices pelo valor (decrescente) e imprime os k primeiros
     static void imprimirTop(double[] valores, int k) {
         Integer[] idx = new Integer[valores.length];
         for (int i = 0; i < idx.length; i++) idx[i] = i;
