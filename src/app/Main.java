@@ -1,17 +1,26 @@
 package app;
 
-import model.Aresta;
-import model.Vertice;
+import builder.ConstrutorSimilaridade;
+import io.LeitorMunicipios;
+import model.Grafo;
 
 public class Main {
-    public static void main(String[] args) {
-        Vertice a = new Vertice(0, 4106902, "CURITIBA", "PR", 0.823, 0.768, 0.855, 0.850);
-        Vertice b = new Vertice(1, 1100015, "ALTA FLORESTA D'OESTE", "RO", 0.641, 0.526, 0.763, 0.657);
-        System.out.println(a + " x " + b);
-        System.out.println("d² = " + a.distanciaQuadrada(b));
+    public static void main(String[] args) throws Exception {
+        long t0 = System.currentTimeMillis();
+        Grafo g = LeitorMunicipios.ler("dados/municipios_idhm_2010.csv");
+        ConstrutorSimilaridade.conectar(g, 8);
+        long t1 = System.currentTimeMillis();
 
-        Aresta ab = new Aresta(a.getID(), b.getID(), 1 + Math.sqrt(a.distanciaQuadrada(b)));
-        System.out.println(ab);
+        int min = Integer.MAX_VALUE, max = 0, soma = 0;
+        for (int i = 0; i < g.numVertices(); i++) {
+            int gr = g.grau(i);
+            min = Math.min(min, gr);
+            max = Math.max(max, gr);
+            soma += gr;
+        }
+        System.out.println("Vértices: " + g.numVertices());
+        System.out.println("Arestas: " + g.numArestas());
+        System.out.println("Grau min/max/médio: " + min + " / " + max + " / " + (double) soma / g.numVertices());
+        System.out.println("Tempo: " + (t1 - t0) + " ms");
     }
-
 }
