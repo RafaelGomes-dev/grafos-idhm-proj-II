@@ -22,7 +22,7 @@ public class Main {
 
     public static void main(String[] args) {
         while (true) {
-            System.out.println("\n===== Sistema de Análise de IDHM — Grafos =====");
+            System.out.println("\n===== Sistema de Análise de IDHM - Grafos =====");
             System.out.println("Grafo atual: " + (grafo == null ? "nenhum"
                 : grafo.numVertices() + " vértices, " + grafo.numArestas() + " arestas"));
             System.out.println(" 1. Importar municípios e gerar grafo (k-NN, k=8)");

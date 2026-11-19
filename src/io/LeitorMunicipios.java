@@ -25,7 +25,7 @@ public abstract class LeitorMunicipios {
                 }
                 grafo.adicionarVertice(new Vertice(
                     id,
-                    Integer.parseInt(c[0]), c[1], c[2],
+                    Integer.parseInt(c[0]), c[1].toUpperCase(), c[2],
                     Double.parseDouble(c[3]), Double.parseDouble(c[4]),
                     Double.parseDouble(c[5]), Double.parseDouble(c[6])));
                 id++;
